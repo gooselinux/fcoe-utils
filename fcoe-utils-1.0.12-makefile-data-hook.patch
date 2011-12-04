@@ -1,0 +1,11 @@
+--- fcoe-utils-1.0.12/Makefile.am.orig	2010-03-15 17:02:19.000000000 +0100
++++ fcoe-utils-1.0.12/Makefile.am	2010-03-15 17:02:34.000000000 +0100
+@@ -62,8 +62,3 @@
+ init_d_SCRIPTS = etc/initd/fcoe
+ 
+ dist_noinst_DATA = README COPYING INSTALL fcoe-utils.spec etc/config
+-
+-install-data-hook:
+-	if [ ! -f ${DESTDIR}${fcoe_configdir}/config ] ; then \
+-		cp ${srcdir}/etc/config ${DESTDIR}${fcoe_configdir}/config; \
+-	fi

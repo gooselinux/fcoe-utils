@@ -1,0 +1,31 @@
+[4/6] fcoemon: don't disable on destroy unless it's a command from fcoeadm
+
+From: Chris Leech <christopher.leech@intel.com>
+
+Automatically marking interfaces as disabled when they are destroyed for
+other reasons (like netdevs going away) means they don't get automatically
+brought back up later.
+
+Signed-off-by: Chris Leech <christopher.leech@intel.com>
+---
+
+ fcoemon.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+
+diff --git a/fcoemon.c b/fcoemon.c
+index fe7cba7..76d58fc 100644
+--- a/fcoemon.c
++++ b/fcoemon.c
+@@ -2043,10 +2043,8 @@ static void fcm_fcoe_action(struct fcm_netif *ff, struct fcoe_port *p)
+ 			/* destroy all the VLANs */
+ 			vp = fcm_find_fcoe_port(p->ifname, FCP_REAL_IFNAME);
+ 			while (vp) {
+-				if (vp->auto_created) {
+-					vp->fcoe_enable = 0;
++				if (vp->auto_created)
+ 					fcp_set_next_action(vp, FCP_DESTROY_IF);
+-				}
+ 				vp = fcm_find_next_fcoe_port(vp, p->ifname);
+ 			}
+ 			rc = fcm_success;

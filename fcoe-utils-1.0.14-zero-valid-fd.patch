@@ -1,0 +1,36 @@
+[1/6] fcoemon: 0 is a valid file descriptor number
+
+From: Chris Leech <christopher.leech@intel.com>
+
+0 was being used to indicate the lack of an allocated FIP socket, in some
+cases that resulted in the actual 0 file descriptor being closed
+unintentionally.
+
+Signed-off-by: Chris Leech <christopher.leech@intel.com>
+---
+
+ fcoemon.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+
+diff --git a/fcoemon.c b/fcoemon.c
+index 131a6d6..2b6de00 100644
+--- a/fcoemon.c
++++ b/fcoemon.c
+@@ -288,6 +288,7 @@ static struct fcoe_port *alloc_fcoe_port(char *ifname)
+ 		 * that the interface is not created yet.
+ 		 */
+ 		p->last_action = FCP_DESTROY_IF;
++		p->fip_socket = -1;
+ 		sa_timer_init(&p->vlan_disc_timer, fcm_vlan_disc_timeout, p);
+ 	}
+ 
+@@ -1998,7 +1999,7 @@ void fcm_vlan_disc_timeout(void *arg)
+ int fcm_start_vlan_disc(struct fcoe_port *p)
+ {
+ 	int s;
+-	if (!p->fip_socket) {
++	if (p->fip_socket < 0) {
+ 		s = fcm_vlan_disc_socket(p);
+ 		if (s < 0)
+ 			return s;

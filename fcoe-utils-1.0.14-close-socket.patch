@@ -1,0 +1,35 @@
+[2/6] fcoemon: close fip socket and cancel timers when stopping VLAN discovery
+
+From: Chris Leech <christopher.leech@intel.com>
+
+VLAN discovery is restarted after a network interface is removed and the
+re-added (network driver reload); but if the FIP socket is reused from
+before it will be bound to the wrong ifindex and received frames will
+not be correctly routed to fcoemon.  Make sure we destroy the FIP socket
+when leaving the VLAN discovery state, so a new one will be created
+later when needed.
+
+Signed-off-by: Chris Leech <christopher.leech@intel.com>
+---
+
+ fcoemon.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+
+diff --git a/fcoemon.c b/fcoemon.c
+index 2b6de00..fe7cba7 100644
+--- a/fcoemon.c
++++ b/fcoemon.c
+@@ -753,6 +753,12 @@ static void fcp_set_next_action(struct fcoe_port *p, enum fcp_action action)
+ 		case FCP_DISABLE_IF:
+ 		case FCP_RESET_IF:
+ 		case FCP_SCAN_IF:
++			if (p->fip_socket >= 0) {
++				sa_timer_cancel(&p->vlan_disc_timer);
++				sa_select_rem_fd(p->fip_socket);
++				close(p->fip_socket);
++				p->fip_socket = -1;
++			}
+ 			p->action = action;
+ 			break;
+ 		default:

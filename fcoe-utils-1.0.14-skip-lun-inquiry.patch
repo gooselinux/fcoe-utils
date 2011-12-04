@@ -1,0 +1,32 @@
+fcoe-utils: skip lun inquiry and read capacity for offline rports
+
+From: Vasu Dev <vasu.dev@intel.com>
+
+Since fcoeadm blocks on these command for offlined/blocked rports
+and then end up with junk lun to display info once out of
+inquiry or read capacity commands. Therefore skip these commands
+if rport is offline.
+
+Signed-off-by: Vasu Dev <vasu.dev@intel.com>
+Signed-off-by: Robert Love <robert.w.love@intel.com>
+---
+
+ fcoeadm_display.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+
+diff --git a/fcoeadm_display.c b/fcoeadm_display.c
+index 4287308..cd06f95 100644
+--- a/fcoeadm_display.c
++++ b/fcoeadm_display.c
+@@ -1368,6 +1368,10 @@ enum fcoe_err display_target_info(const char *ifname,
+ 				&hba_table[i].hba_attrs,
+ 				&rport_attrs);
+ 
++			if (hba_table[i].port_attrs.PortState !=
++			    HBA_PORTSTATE_ONLINE)
++				continue;
++
+ 			/*
+ 			 * This will print the LUN table
+ 			 * under the target.

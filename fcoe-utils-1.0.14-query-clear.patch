@@ -1,0 +1,35 @@
+[6/6] fcoemon: don't clear DCB query setting on VLAN link up
+
+From: Chris Leech <christopher.leech@intel.com>
+
+DCB status query isn't restarted on a VLAN link up, because there will also be
+a link event for the real device which is used instead.  But currently the
+state is set back to INIT, stopping any previous DCB query from running.  This
+can cause fcoemon to not create an fcoe instance on a ready VLAN interface
+after a link event.  Instead, just don't do anything for VLANs.
+
+Signed-off-by: Chris Leech <christopher.leech@intel.com>
+---
+
+ fcoemon.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+
+diff --git a/fcoemon.c b/fcoemon.c
+index 999d9b9..f679361 100644
+--- a/fcoemon.c
++++ b/fcoemon.c
+@@ -876,11 +876,9 @@ static void update_fcoe_port_state(struct fcoe_port *p, unsigned int type,
+ 				 * called for a real interface and the FCoE
+ 				 * interface is configured on a VLAN.
+ 				 */
+-				if ((t == FCP_REAL_IFNAME) &&
++				if (!((t == FCP_REAL_IFNAME) &&
+ 				    strncmp(p->ifname, p->real_ifname,
+-					    IFNAMSIZ))
+-					fcm_dcbd_state_set(ff, FCD_INIT);
+-				else
++					    IFNAMSIZ)))
+ 					fcm_dcbd_state_set(ff,
+ 						FCD_GET_DCB_STATE);
+ 			} else {

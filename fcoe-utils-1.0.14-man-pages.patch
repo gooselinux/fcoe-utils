@@ -1,0 +1,798 @@
+--- a/fcrls.c
++++ b/fcrls.c
+@@ -395,7 +395,8 @@ static int rport_find(struct rport_info *rpi)
+ 		return ENODEV;
+ 	}
+ 	while (n--) {
+-		if (namelist[n]->d_type != DT_DIR)
++		if ((namelist[n]->d_type != DT_DIR) &&
++		    (namelist[n]->d_type != DT_LNK))
+ 			goto free_name;
+ 		if (rport_parse(namelist[n]->d_name, &rpii))
+ 			goto free_name;
+diff --git a/Makefile.am b/Makefile.am
+index fa0f82e..b65e512 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -44,7 +44,7 @@ fcoe_configdir = ${sysconfdir}/fcoe
+ dist_fcoe_config_DATA = etc/cfg-ethx
+ 
+ ## man pages for fcoeadm and fcoemon
+-dist_man_MANS = doc/fcoeadm.8 doc/fcoemon.8 doc/fipvlan.8
++dist_man_MANS = doc/fcoeadm.8 doc/fcoemon.8 doc/fipvlan.8 doc/fcrls.8
+ 
+ ## init script for fcoemon
+ dist_noinst_SCRIPTS = etc/initd/initd.suse etc/initd/initd.fedora \
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -1,7 +1,7 @@
+ ## known to work with asciidoc version 8.4.5
+ ## and the DocBook XSL Stylesheets version 1.75.2
+ 
+-MAN_8_TXT := fcoeadm.txt fcoemon.txt fipvlan.txt
++MAN_8_TXT := fcoeadm.txt fcoemon.txt fipvlan.txt fcrls.txt
+ MAN_TXT := $(MAN_8_TXT)
+ MAN_8 := $(patsubst %.txt,%.8,$(MAN_8_TXT))
+ MAN := $(MAN_8)
+--- /dev/null
++++ b/doc/fcrls.8
+@@ -0,0 +1,86 @@
++'\" t
++.\"     Title: fcrls
++.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
++.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
++.\"      Date: 06/04/2010
++.\"    Manual: Open-FCoE Tools
++.\"    Source: Open-FCoE
++.\"  Language: English
++.\"
++.TH "FCRLS" "8" "06/04/2010" "Open\-FCoE" "Open\-FCoE Tools"
++.\" -----------------------------------------------------------------
++.\" * set default formatting
++.\" -----------------------------------------------------------------
++.\" disable hyphenation
++.nh
++.\" disable justification (adjust text to left margin only)
++.ad l
++.\" -----------------------------------------------------------------
++.\" * MAIN CONTENT STARTS HERE *
++.\" -----------------------------------------------------------------
++.SH "NAME"
++fcrls \- Fibre Channel Read Link Error Status Block (RLS) tool
++.SH "SYNOPSIS"
++.sp
++\fBfcrls\fR \-\-port \fIrport_bsg_name\fR [\-\-quiet]
++.sp
++\fBfcrls\fR \-\-fcid \fIrport_port_FC\-ID\fR [\-\-quiet]
++.sp
++\fBfcrls\fR \-\-help
++.SH "DESCRIPTION"
++.sp
++The \fBfcrls\fR command performs Fibre Channel Read Link Error Status Block (RLS) ELS request (see FC\-LS\-2) via BSG over a given rport bsg name or FC\-ID\&.
++.sp
++\fBfcrls\fR takes either a rport bsg name or a rport port FC\-ID as the input\&. To disable verbose output, use the \fB\-\-quiet\fR option\&.
++.SH "OPTIONS"
++.PP
++\fB\-\-port\fR \fIrport_bsg_name\fR
++.RS 4
++Send RLS to a rport by FC remote port bsg name, e\&.g\&., rport\-7:0\-1\&.
++.RE
++.PP
++\fB\-\-fcid\fR \fIrport_port_FC\-ID\fR
++.RS 4
++Send RLS to a rport by port FC\-ID, e\&.g\&., 0xce000d\&.
++.RE
++.PP
++\fB\-\-quiet\fR
++.RS 4
++Disable verbose output\&.
++.RE
++.PP
++\fB\-\-help\fR
++.RS 4
++Display a help message with basic usage instructions\&.
++.RE
++.SH "EXAMPLES"
++.sp
++Sends RLS to the FC remote port as rport\-7:0\-1
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcrls \-\-port rport\-7:0\-1
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++Sends RLS to the FC remote port with 0xce000d as its port FC\-ID
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcrls \-\-fcid 0xce000d
++.fi
++.if n \{\
++.RE
++.\}
++.SH "SEE ALSO"
++.sp
++\fBfcoeadm\fR(8)
++.SH "SUPPORT"
++.sp
++\fBfcrls\fR is part of the \fIfcoe\-utils\fR package, maintained through the \fIOpen\-FCoE\fR project\&. Resources for both developers and users can be found at the \fIOpen\-FCoE\fR website http://open\-fcoe\&.org/\&.
+--- /dev/null
++++ b/doc/fcrls.txt
+@@ -0,0 +1,68 @@
++///////////////////////////////////////////////////////////////////////////
++// vim:syntax=asciidoc:tw=75:
++//
++// This is an asciidoc text file, which will be converted into a UNIX man
++// page using asciidoc and the DocBook XSL stylesheets.
++//
++// If you are going to update this documentation, please modify this file
++// and then regenerate the nroff formated man page using the Makefile.
++///////////////////////////////////////////////////////////////////////////
++
++FCRLS(8)
++==========
++:man source: Open-FCoE
++:man manual: Open-FCoE Tools
++
++NAME
++----
++fcrls - Fibre Channel Read Link Error Status Block (RLS) tool
++
++SYNOPSIS
++--------
++*fcrls* --port _rport_bsg_name_ [--quiet]
++
++*fcrls* --fcid _rport_port_FC-ID_ [--quiet]
++
++*fcrls* --help
++
++DESCRIPTION
++-----------
++The *fcrls* command performs Fibre Channel Read Link Error Status Block (RLS)
++ELS request (see FC-LS-2) via BSG over a given rport bsg name or FC-ID.
++
++*fcrls* takes either a rport bsg name or a rport port FC-ID as the input. To
++disable verbose output, use the *--quiet* option.
++
++OPTIONS
++-------
++*--port* _rport_bsg_name_::
++	Send RLS to a rport by FC remote port bsg name, e.g., rport-7:0-1.
++
++*--fcid* _rport_port_FC-ID_::
++	Send RLS to a rport by port FC-ID, e.g., 0xce000d.
++
++*--quiet*::
++	Disable verbose output.
++
++*--help*::
++	Display a help message with basic usage instructions.
++
++EXAMPLES
++--------
++Sends RLS to the FC remote port as rport-7:0-1
++
++	fcrls --port rport-7:0-1
++
++Sends RLS to the FC remote port with 0xce000d as its port FC-ID
++
++	fcrls --fcid 0xce000d
++
++SEE ALSO
++--------
++*fcoeadm*(8)
++
++SUPPORT
++-------
++*fcrls* is part of the _fcoe-utils_ package, maintained through the
++_Open-FCoE_ project. Resources for both developers and users can be found
++at the _Open-FCoE_ website <http://open-fcoe.org/>.
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -44,7 +44,8 @@ fcoe_configdir = ${sysconfdir}/fcoe
+ dist_fcoe_config_DATA = etc/cfg-ethx
+ 
+ ## man pages for fcoeadm and fcoemon
+-dist_man_MANS = doc/fcoeadm.8 doc/fcoemon.8 doc/fipvlan.8 doc/fcrls.8
++dist_man_MANS = doc/fcoeadm.8 doc/fcoemon.8 doc/fipvlan.8 doc/fcrls.8 \
++	doc/fcnsq.8
+ 
+ ## init script for fcoemon
+ dist_noinst_SCRIPTS = etc/initd/initd.suse etc/initd/initd.fedora \
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -1,7 +1,7 @@
+ ## known to work with asciidoc version 8.4.5
+ ## and the DocBook XSL Stylesheets version 1.75.2
+ 
+-MAN_8_TXT := fcoeadm.txt fcoemon.txt fipvlan.txt fcrls.txt
++MAN_8_TXT := fcoeadm.txt fcoemon.txt fipvlan.txt fcrls.txt fcnsq.txt
+ MAN_TXT := $(MAN_8_TXT)
+ MAN_8 := $(patsubst %.txt,%.8,$(MAN_8_TXT))
+ MAN := $(MAN_8)
+--- /dev/null
++++ b/doc/fcnsq.8
+@@ -0,0 +1,128 @@
++'\" t
++.\"     Title: fcnsq
++.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
++.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
++.\"      Date: 06/09/2010
++.\"    Manual: Open-FCoE Tools
++.\"    Source: Open-FCoE
++.\"  Language: English
++.\"
++.TH "FCNSQ" "8" "06/09/2010" "Open\-FCoE" "Open\-FCoE Tools"
++.\" -----------------------------------------------------------------
++.\" * set default formatting
++.\" -----------------------------------------------------------------
++.\" disable hyphenation
++.nh
++.\" disable justification (adjust text to left margin only)
++.ad l
++.\" -----------------------------------------------------------------
++.\" * MAIN CONTENT STARTS HERE *
++.\" -----------------------------------------------------------------
++.SH "NAME"
++fcnsq \- Fibre Channel Name Server Query Tool
++.SH "SYNOPSIS"
++.sp
++\fBfcnsq\fR \fIhost\fR \-\-gpn \fIport_id\fR [\-q | \-\-quiet]
++.sp
++\fBfcnsq\fR \fIhost\fR \-\-gnn \fIport_id\fR [\-q | \-\-quiet]
++.sp
++\fBfcnsq\fR \fIhost\fR \-\-gspn \fIport_id\fR [\-q | \-\-quiet]
++.sp
++\fBfcnsq\fR \fIhost\fR \-\-gsnn \fIwwpn\fR [\-q | \-\-quiet]
++.sp
++\fBfcnsq\fR ?
++.SH "DESCRIPTION"
++.sp
++The \fBfcnsq\fR command performs Fibre Channel Name Server queries for a user\-specified FC Host\&. The supported name server query commands include: Get Port Name (GPN), Get Node Name (GNN), Get Symbolic Node Name (GSNN), and Get Symbolic Port Name (GSPN) as described in FC\-GS\-3 for the Common Transport (CT) services\&.
++.sp
++\fBfcnsq\fR takes the host bsg name as the input for the target host\&. Host bsg name must be a valid bsg device, e\&.g\&., "host12" as derived from /dev/bsg/fc_host12\&. For each name server query command, the argument is either a Port ID or a World Wide Port Name\&. Port IDs and World Wide Names must be specified in hexadecimal\&. To disable verbose output, use the \fB\-\-quiet\fR option\&.
++.SH "OPTIONS"
++.PP
++\fBhost\fR \fB\-\-gpn\fR \fIport_id\fR
++.RS 4
++Get Port Name by Port ID for
++\fIhost\fR\&.
++.RE
++.PP
++\fBhost\fR \fB\-\-gnn\fR \fIport_id\fR
++.RS 4
++Get Node Name by Port ID for
++\fIhost\fR\&.
++.RE
++.PP
++\fBhost\fR \fB\-\-gspn\fR \fIport_id\fR
++.RS 4
++Get Symbolic Port Name by Port ID for
++\fIhost\fR\&.
++.RE
++.PP
++\fBhost\fR \fB\-\-gsnn\fR \fIwwpn\fR
++.RS 4
++Get Symbolic Node Name by World Wide Port Name for
++\fIhost\fR\&.
++.RE
++.PP
++\fB\-q\fR, \fB\-\-quiet\fR
++.RS 4
++Disable verbose output\&.
++.RE
++.PP
++\fB?\fR
++.RS 4
++Display a help message with basic usage instructions\&.
++.RE
++.SH "EXAMPLES"
++.sp
++Query Get Port Name (GPN) from host12 for Port ID 0xbf0027
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcnsq host12 \-\-gpn bf0027
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++Query Get Node Name (GNN) from host12 for Port ID 0xbf0027
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcnsq host12 \-\-gnn bf0027
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++Query Get Symbolic Port Name (GSPN) from host12 for Port ID 0xbf0027
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcnsq host12 \-\-gspn bf0027
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++Query Get Symbolic Node Name (GSNN) from host12 for WWWPN 0x1000001B213C9DDA
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcnsq host12 \-\-gsnn 0x1000001B213C9DDA
++.fi
++.if n \{\
++.RE
++.\}
++.SH "SEE ALSO"
++.sp
++\fBfcoeadm\fR(8)
++.SH "SUPPORT"
++.sp
++\fBfcnsq\fR is part of the \fIfcoe\-utils\fR package, maintained through the \fIOpen\-FCoE\fR project\&. Resources for both developers and users can be found at the \fIOpen\-FCoE\fR website http://open\-fcoe\&.org/\&.
+--- /dev/null
++++ b/doc/fcnsq.txt
+@@ -0,0 +1,93 @@
++///////////////////////////////////////////////////////////////////////////
++// vim:syntax=asciidoc:tw=75:
++//
++// This is an asciidoc text file, which will be converted into a UNIX man
++// page using asciidoc and the DocBook XSL stylesheets.
++//
++// If you are going to update this documentation, please modify this file
++// and then regenerate the nroff formated man page using the Makefile.
++///////////////////////////////////////////////////////////////////////////
++
++fcnsq(8)
++==========
++:man source: Open-FCoE
++:man manual: Open-FCoE Tools
++
++NAME
++----
++fcnsq - Fibre Channel Name Server Query Tool
++
++SYNOPSIS
++--------
++*fcnsq* _host_ --gpn _port_id_ [-q | --quiet]
++
++*fcnsq* _host_ --gnn _port_id_ [-q | --quiet]
++
++*fcnsq* _host_ --gspn _port_id_ [-q | --quiet]
++
++*fcnsq* _host_ --gsnn _wwpn_ [-q | --quiet]
++
++*fcnsq* ?
++
++DESCRIPTION
++-----------
++The *fcnsq* command performs Fibre Channel Name Server queries
++for a user-specified FC Host. The supported name server query commands
++include: Get Port Name (GPN), Get Node Name (GNN), Get Symbolic Node Name
++(GSNN), and Get Symbolic Port Name (GSPN) as described in FC-GS-3 for the
++Common Transport (CT) services.
++
++*fcnsq* takes the host bsg name as the input for the target host.  Host
++bsg name must be a valid bsg device, e.g., "host12" as derived from
++/dev/bsg/fc_host12.  For each name server query command, the argument is
++either a Port ID or a World Wide Port Name.  Port IDs and World Wide Names
++must be specified in hexadecimal. To disable verbose output, use the *--quiet*
++option.
++
++OPTIONS
++-------
++*host* *--gpn* _port_id_::
++	Get Port Name by Port ID for _host_.
++
++*host* *--gnn* _port_id_::
++	Get Node Name by Port ID for _host_.
++
++*host* *--gspn* _port_id_::
++	Get Symbolic Port Name by Port ID for _host_.
++
++*host* *--gsnn* _wwpn_::
++	Get Symbolic Node Name by World Wide Port Name for _host_.
++
++*-q*, *--quiet*::
++	Disable verbose output.
++
++*?*::
++	Display a help message with basic usage instructions.
++
++EXAMPLES
++--------
++Query Get Port Name (GPN) from host12 for Port ID 0xbf0027
++
++	fcnsq host12 --gpn bf0027
++
++Query Get Node Name (GNN) from host12 for Port ID 0xbf0027
++
++	fcnsq host12 --gnn bf0027
++
++Query Get Symbolic Port Name (GSPN) from host12 for Port ID 0xbf0027
++
++	fcnsq host12 --gspn bf0027
++
++Query Get Symbolic Node Name (GSNN) from host12 for WWWPN 0x1000001B213C9DDA
++
++	fcnsq host12 --gsnn 0x1000001B213C9DDA
++
++SEE ALSO
++--------
++*fcoeadm*(8)
++
++SUPPORT
++-------
++*fcnsq* is part of the _fcoe-utils_ package, maintained through the
++_Open-FCoE_ project. Resources for both developers and users can be found
++at the _Open-FCoE_ website <http://open-fcoe.org/>.
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -45,7 +45,7 @@ dist_fcoe_config_DATA = etc/cfg-ethx
+ 
+ ## man pages for fcoeadm and fcoemon
+ dist_man_MANS = doc/fcoeadm.8 doc/fcoemon.8 doc/fipvlan.8 doc/fcrls.8 \
+-	doc/fcnsq.8
++	doc/fcnsq.8 doc/fcping.8
+ 
+ ## init script for fcoemon
+ dist_noinst_SCRIPTS = etc/initd/initd.suse etc/initd/initd.fedora \
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -1,7 +1,7 @@
+ ## known to work with asciidoc version 8.4.5
+ ## and the DocBook XSL Stylesheets version 1.75.2
+ 
+-MAN_8_TXT := fcoeadm.txt fcoemon.txt fipvlan.txt fcrls.txt fcnsq.txt
++MAN_8_TXT := fcoeadm.txt fcoemon.txt fipvlan.txt fcrls.txt fcnsq.txt fcping.txt
+ MAN_TXT := $(MAN_8_TXT)
+ MAN_8 := $(patsubst %.txt,%.8,$(MAN_8_TXT))
+ MAN := $(MAN_8)
+--- /dev/null
++++ b/doc/fcping.8
+@@ -0,0 +1,204 @@
++'\" t
++.\"     Title: fcping
++.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
++.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
++.\"      Date: 06/04/2010
++.\"    Manual: Open-FCoE Tools
++.\"    Source: Open-FCoE
++.\"  Language: English
++.\"
++.TH "FCPING" "8" "06/04/2010" "Open\-FCoE" "Open\-FCoE Tools"
++.\" -----------------------------------------------------------------
++.\" * set default formatting
++.\" -----------------------------------------------------------------
++.\" disable hyphenation
++.nh
++.\" disable justification (adjust text to left margin only)
++.ad l
++.\" -----------------------------------------------------------------
++.\" * MAIN CONTENT STARTS HERE *
++.\" -----------------------------------------------------------------
++.SH "NAME"
++fcping \- Fibre Channel Ping (ELS ECHO) tool
++.SH "SYNOPSIS"
++.sp
++\fBfcping\fR [\-fqx] [ \-i \fIinterval\fR ] [ \-c \fIcount\fR ] [ \-s \fIsize\fR ] \-h \fIsource\fR \fItarget\fR
++.sp
++source = \fIinterface\fR | \fIMAC\fR | \fIWWPN\fR | \fIFC\-ID\fR
++.sp
++target = \-F \fIWWPN\fR | \-N \fIWWPN\fR | \-F \fIFC\-ID\fR
++.SH "DESCRIPTION"
++.sp
++The \fBfcping\fR command performs the Fibre Channel FC\-LS\-2 ECHO ELS command and displays the reply\&. The max payload for \fBfcping\fR is 2108 bytes\&. When no \fB\-c\fR is given, \fBfcping\fR will continue until user interrupts\&.
++.SH "OPTIONS"
++.PP
++\fB\-f\fR
++.RS 4
++Flood ping
++.RE
++.PP
++\fB\-q\fR
++.RS 4
++Quiet! just print summary
++.RE
++.PP
++\fB\-x\fR
++.RS 4
++Hex dump of responses
++.RE
++.PP
++\fB\-i\fR \fIinterval\fR
++.RS 4
++Wait
++\fIinterval\fR
++seconds between each ping
++.RE
++.PP
++\fB\-c\fR \fIcount\fR
++.RS 4
++Stop after sending
++\fIcount\fR
++pings
++.RE
++.PP
++\fB\-h\fR \fIsource\fR
++.RS 4
++Source is
++\fIinterface\fR
++like ethX,
++\fIMAC\fR
++address,
++\fIWWPN\fR, or
++\fIFC\-ID\fR
++.RE
++.PP
++\fB\-s\fR \fIsize\fR
++.RS 4
++Byte\-length of ping request payload (max 2108)
++.RE
++.PP
++\fB\-F\fR \fIFC\-ID\fR
++.RS 4
++Destination port ID
++.RE
++.PP
++\fB\-P\fR \fIWWPN\fR
++.RS 4
++Destination world\-wide port name
++.RE
++.PP
++\fB\-N\fR \fIWWNN\fR
++.RS 4
++Destination world\-wide node name
++.RE
++.SH "EXAMPLES"
++.sp
++Sends ELS ECHO to Port FC\-ID 0xbf0027 from interface n0\&.170 with max 3 pings\&.
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcping \-c 3 \-h n0\&.170 \-F 0xbf0027
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++sending echo to 0xBF0027
++echo    1 accepted                       16\&.170 ms
++echo    2 accepted                        7\&.053 ms
++echo    3 accepted                        6\&.803 ms
++3 frames sent, 3 received 0 errors, 0\&.000% loss, avg\&. rt time 10\&.009 ms
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++Sends ELS ECHO to WWNN 0x1000001B213C9DDA from interface n0\&.170 with max 3 pings and payload size 1500 bytes
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcping \-c 3 \-h n0\&.170 \-s 1500 \-N 0x1000001B213C9DDA
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++sending echo to 0xBF0027
++echo    1 accepted                        6\&.597 ms
++echo    2 accepted                        6\&.925 ms
++echo    3 accepted                       12\&.419 ms
++3 frames sent, 3 received 0 errors, 0\&.000% loss, avg\&. rt time 8\&.647 ms
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++Sends ELS ECHO to WWNN 0x1000001B213C9DDA from interface n0\&.170 continuously with payload of 32 bytes and hex\-dump the reply to the screen
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++fcping \-x \-h n0\&.170 \-s 32 \-N 0x1000001B213C9DDA
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++sending echo to 0xBF0027
++echo    1 accepted                        6\&.937 ms
++response length 32
++     0 02000000 00000001 00010203 04050607
++    10 08090a0b 0c0d0e0f 10111213 14151617
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++echo    2 accepted                        6\&.923 ms
++response length 32
++     0 02000000 00000002 00010203 04050607
++    10 08090a0b 0c0d0e0f 10111213 14151617
++.fi
++.if n \{\
++.RE
++.\}
++.sp
++.if n \{\
++.RS 4
++.\}
++.nf
++echo    3 accepted                       84\&.929 ms
++response length 32
++     0 02000000 00000003 00010203 04050607
++    10 08090a0b 0c0d0e0f 10111213 14151617
++.fi
++.if n \{\
++.RE
++.\}
++.SH "SEE ALSO"
++.sp
++\fBfcoeadm\fR(8)
++.SH "SUPPORT"
++.sp
++\fBfcping\fR is part of the \fIfcoe\-utils\fR package, maintained through the \fIOpen\-FCoE\fR project\&. Resources for both developers and users can be found at the \fIOpen\-FCoE\fR website http://open\-fcoe\&.org/\&.
+--- /dev/null
++++ b/doc/fcping.txt
+@@ -0,0 +1,120 @@
++///////////////////////////////////////////////////////////////////////////
++// vim:syntax=asciidoc:tw=75:
++//
++// This is an asciidoc text file, which will be converted into a UNIX man
++// page using asciidoc and the DocBook XSL stylesheets.
++//
++// If you are going to update this documentation, please modify this file
++// and then regenerate the nroff formated man page using the Makefile.
++///////////////////////////////////////////////////////////////////////////
++
++fcping(8)
++==========
++:man source: Open-FCoE
++:man manual: Open-FCoE Tools
++
++NAME
++----
++fcping - Fibre Channel Ping (ELS ECHO) tool
++
++SYNOPSIS
++--------
++*fcping* [-fqx] [ -i _interval_ ] [ -c _count_ ] [ -s _size_ ] -h _source_ _target_
++
++source = _interface_ | _MAC_ | _WWPN_ | _FC-ID_
++
++target = -F _WWPN_ | -N _WWPN_ | -F _FC-ID_
++
++DESCRIPTION
++-----------
++The *fcping* command performs the Fibre Channel FC-LS-2 ECHO ELS command
++and displays the reply. The max payload for *fcping* is 2108 bytes. When
++no *-c* is given, *fcping* will continue until user interrupts.
++
++OPTIONS
++-------
++*-f*::
++	Flood ping
++
++*-q*::
++	Quiet! just print summary
++
++*-x*::
++     	Hex dump of responses
++
++*-i* _interval_::
++	Wait _interval_ seconds between each ping
++
++*-c* _count_::
++	Stop after sending _count_ pings
++
++*-h* _source_::
++	Source is _interface_ like ethX, _MAC_ address, _WWPN_, or _FC-ID_
++
++*-s* _size_::
++	Byte-length of ping request payload (max 2108)
++
++*-F* _FC-ID_::
++	Destination port ID
++
++*-P* _WWPN_::
++	Destination world-wide port name
++
++*-N* _WWNN_::
++	Destination world-wide node name
++
++EXAMPLES
++--------
++Sends ELS ECHO to Port FC-ID 0xbf0027 from interface n0.170 with max 3 pings.
++
++	fcping -c 3 -h n0.170 -F 0xbf0027
++
++	sending echo to 0xBF0027
++	echo    1 accepted                       16.170 ms
++	echo    2 accepted                        7.053 ms
++	echo    3 accepted                        6.803 ms
++	3 frames sent, 3 received 0 errors, 0.000% loss, avg. rt time 10.009 ms
++
++
++Sends ELS ECHO to WWNN 0x1000001B213C9DDA from interface n0.170 with max 3 pings
++and payload size 1500 bytes
++
++	fcping -c 3 -h n0.170 -s 1500 -N 0x1000001B213C9DDA
++
++	sending echo to 0xBF0027
++	echo    1 accepted                        6.597 ms
++	echo    2 accepted                        6.925 ms
++	echo    3 accepted                       12.419 ms
++	3 frames sent, 3 received 0 errors, 0.000% loss, avg. rt time 8.647 ms
++
++Sends ELS ECHO to WWNN 0x1000001B213C9DDA from interface n0.170 continuously
++with payload of 32 bytes and hex-dump the reply to the screen
++
++	fcping -x -h n0.170 -s 32 -N 0x1000001B213C9DDA
++
++	sending echo to 0xBF0027
++	echo    1 accepted                        6.937 ms
++	response length 32
++	     0 02000000 00000001 00010203 04050607
++	    10 08090a0b 0c0d0e0f 10111213 14151617
++
++	echo    2 accepted                        6.923 ms
++	response length 32
++	     0 02000000 00000002 00010203 04050607
++	    10 08090a0b 0c0d0e0f 10111213 14151617
++
++	echo    3 accepted                       84.929 ms
++	response length 32
++	     0 02000000 00000003 00010203 04050607
++	    10 08090a0b 0c0d0e0f 10111213 14151617
++
++
++SEE ALSO
++--------
++*fcoeadm*(8)
++
++SUPPORT
++-------
++*fcping* is part of the _fcoe-utils_ package, maintained through the
++_Open-FCoE_ project. Resources for both developers and users can be found
++at the _Open-FCoE_ website <http://open-fcoe.org/>.

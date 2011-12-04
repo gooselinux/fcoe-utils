@@ -1,0 +1,33 @@
+[3/6] lib/fip.c: make fip_recv() non-blocking
+
+From: Chris Leech <christopher.leech@intel.com>
+
+When testing networking driver reloading with fcoemon running, I
+occasionally see fcoemon hang in a call to fip_recv.  I don't know why
+select is indicating receive data ready when it's not, but this fixes
+thing up and keeps fcoemon running.
+
+fip_recv is called in fcoemon and fipvlan, but in both cases only after
+a call to poll or select has indicated receive data was ready and
+neither should ever need to block.
+
+Signed-off-by: Chris Leech <christopher.leech@intel.com>
+---
+
+ lib/fip.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/lib/fip.c b/lib/fip.c
+index 4db245f..f8c8014 100644
+--- a/lib/fip.c
++++ b/lib/fip.c
+@@ -245,7 +245,7 @@ int fip_recv(int s, fip_handler *fn, void *arg)
+ 	struct fiphdr *fh;
+ 	ssize_t len, desc_len;
+ 
+-	len = recvmsg(s, &msg, 0);
++	len = recvmsg(s, &msg, MSG_DONTWAIT);
+ 	if (len < 0) {
+ 		FIP_LOG_ERRNO("packet socket recv error");
+ 		return len;

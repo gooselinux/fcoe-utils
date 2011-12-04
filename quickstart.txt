@@ -1,0 +1,35 @@
+CONFIGURE AN FCOE INTERFACE
+First, ensure that the open-fcoe and dcbd packages are installed.
+
+This example sets up a VLAN (101) for Ethernet interface eth3 and configures
+the system to automatically connect to storage over this interface.
+
+1) Create a VLAN (specifics may vary by distribution)
+   # cd /etc/sysconfig/network-scripts/
+   # cp ifcfg-eth3 ifcfg-eth3.101
+   # edit ifcfg-eth3.101 and ensure it contains the following:
+
+   DEVICE=eth3.101
+   VLAN=yes
+   ONBOOT=yes
+
+2) Configure FCoE for the VLAN
+   # cd /etc/fcoe/
+   # cp cfg-ethx cfg-eth3.101
+
+3) Start dcbd and configure the Ethernet interface
+   # /etc/init.d/dcbd start
+   # dcbtool sc eth3 dcb on
+   # dcbtool sc eth3 app:fcoe e:1
+
+   Note:  the above assumes no other changes have been made to the DCB
+   settings for the Ethernet interface.
+
+4) Start FCoE
+   # /etc/init.d/fcoe start
+     After a few moments your storage should apear (assuming everything is
+     configured correctly on the fabric)
+
+5) Setup dcbd and fcoe to start when booting
+    # chkconfig dcbd on
+    # chkconfig fcoe on

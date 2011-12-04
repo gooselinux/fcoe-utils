@@ -1,0 +1,29 @@
+[5/6] fcoemon: fix inverted argument to daemon
+
+From: Chris Leech <christopher.leech@intel.com>
+
+The noclose argument is inverted; it's OK to close off stdout and stderr if
+fcoemon is using syslog, otherwise we need them to stay open.  This would
+only show up if you ran fcoemon in the background but still wanted stdout
+for some reason.
+
+Signed-off-by: Chris Leech <christopher.leech@intel.com>
+---
+
+ fcoemon.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/fcoemon.c b/fcoemon.c
+index 76d58fc..999d9b9 100644
+--- a/fcoemon.c
++++ b/fcoemon.c
+@@ -2637,7 +2637,7 @@ int main(int argc, char **argv)
+ 	if (argc != optind)
+ 		fcm_usage();
+ 
+-	if (!fcm_fg && daemon(0, fcoe_config.use_syslog)) {
++	if (!fcm_fg && daemon(0, !fcoe_config.use_syslog)) {
+ 		FCM_LOG("Starting daemon failed");
+ 		exit(EXIT_FAILURE);
+ 	}

@@ -1,0 +1,31 @@
+fcoe-utils: skip displaying all luns with check-condition status
+
+From: Vasu Dev <vasu.dev@intel.com>
+
+Currently fcoeadm skips luns display on check-condition with only
+sense key 0x6 [UNIT_ATTENTION] but luns are not usable with other
+sense key values also, therefore just skip all luns with
+check-condition just as "fdisk -l" also doesn't display any
+such unusable luns.
+
+Signed-off-by: Vasu Dev <vasu.dev@intel.com>
+Signed-off-by: Robert Love <robert.w.love@intel.com>
+---
+
+ fcoeadm_display.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/fcoeadm_display.c b/fcoeadm_display.c
+index 3d80082..4287308 100644
+--- a/fcoeadm_display.c
++++ b/fcoeadm_display.c
+@@ -503,7 +503,7 @@ get_device_capacity_v2(HBA_HANDLE hba_handle,
+ 						&slen);
+ 		if ((status == HBA_STATUS_OK) && (sstat == SCSI_ST_GOOD))
+ 			return HBA_STATUS_OK;
+-		if ((sstat == SCSI_ST_CHECK) && (sense[2] == 0x06))
++		if (sstat == SCSI_ST_CHECK)
+ 			continue;
+ 		fprintf(stderr,
+ 			"%s: HBA_ScsiReadCapacityV2 failed, "
